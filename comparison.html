@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparison Tables - Consistency Model DeepDive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: #f8fafc;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .section {
+            margin: 3rem 0;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 400;
+            margin-bottom: 1.5rem;
+            color: #2d3748;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 2rem 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background: #f7fafc;
+        }
+        
+        .model-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .strength-strongest { color: #e53e3e; font-weight: bold; }
+        .strength-strong { color: #d53f8c; font-weight: bold; }
+        .strength-medium { color: #dd6b20; font-weight: bold; }
+        .strength-weak { color: #5a67d8; font-weight: bold; }
+        .strength-weakest { color: #38b2ac; font-weight: bold; }
+        
+        .check { color: #38a169; font-weight: bold; }
+        .cross { color: #e53e3e; font-weight: bold; }
+        .partial { color: #d69e2e; font-weight: bold; }
+        
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .filter-btn:hover {
+            background: #5a67d8;
+            color: white;
+        }
+        
+        .decision-matrix {
+            background: #f7fafc;
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .decision-flow {
+            display: grid;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .decision-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left: 4px solid;
+            transition: transform 0.3s ease;
+        }
+        
+        .decision-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .decision-card.critical {
+            border-left-color: #dc2626;
+        }
+        
+        .decision-card.coordination {
+            border-left-color: #ea580c;
+        }
+        
+        .decision-card.ordering {
+            border-left-color: #ca8a04;
+        }
+        
+        .decision-card.causality {
+            border-left-color: #2563eb;
+        }
+        
+        .decision-card.personal {
+            border-left-color: #059669;
+        }
+        
+        .decision-card.performance {
+            border-left-color: #7c3aed;
+        }
+        
+        .decision-result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .model-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+        
+        .model-badge.strongest {
+            background: #dc2626;
+        }
+        
+        .model-badge.strong {
+            background: #ea580c;
+        }
+        
+        .model-badge.medium {
+            background: #ca8a04;
+        }
+        
+        .model-badge.weak {
+            background: #2563eb;
+        }
+        
+        .model-badge.weakest {
+            background: #059669;
+        }
+        
+        .decision-summary {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .matrix-cell {
+            text-align: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .matrix-cell h4 {
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        
+        .matrix-cell .model-badge {
+            display: block;
+            margin: 0.25rem 0;
+        }
+        
+        .use-case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .use-case-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .use-case-card h4 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+        
+        .use-case-card .model {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 0.25rem 0;
+        }
+        
+        .nav-bottom {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e2e8f0;
+        }
+        
+        .nav-btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            h1 { font-size: 2rem; }
+            .nav-bottom { flex-direction: column; gap: 1rem; }
+            th, td { padding: 0.5rem; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="index.html" class="back-link">← Back to Overview</a>
+            <h1>📊 Consistency Model Comparisons</h1>
+            <p>Detailed comparison tables and decision matrices with metric explanations</p>
+        </header>
+
+        <div class="section">
+            <h2>📖 Understanding the Metrics</h2>
+            <p>Before diving into comparisons, let's understand what each metric means:</p>
+            
+            <div class="use-case-grid">
+                <div class="use-case-card">
+                    <h4>💪 Strength</h4>
+                    <p><strong>What it measures:</strong> How strong the consistency guarantees are.</p>
+                    <ul>
+                        <li><strong>Strongest:</strong> No anomalies, perfect consistency</li>
+                        <li><strong>Strong:</strong> Very few anomalies, high consistency</li>
+                        <li><strong>Medium:</strong> Some anomalies allowed, balanced</li>
+                        <li><strong>Weak:</strong> Many anomalies possible, low consistency</li>
+                        <li><strong>Weakest:</strong> Temporary inconsistencies allowed</li>
+                    </ul>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>⏰ Real-time Order</h4>
+                    <p><strong>What it measures:</strong> Whether operations must respect the order they actually occurred in real time.</p>
+                    <ul>
+                        <li><strong>✅ Required:</strong> If operation A finishes before B starts, all nodes see A before B</li>
+                        <li><strong>❌ Not Required:</strong> Operations can appear in different order than real-time</li>
+                    </ul>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>🌐 Global Order</h4>
+                    <p><strong>What it measures:</strong> Whether all processes see operations in the same order.</p>
+                    <ul>
+                        <li><strong>✅ Required:</strong> All nodes see operations in identical sequence</li>
+                        <li><strong>❌ Not Required:</strong> Different nodes can see different orderings</li>
+                    </ul>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>🔗 Causality</h4>
+                    <p><strong>What it measures:</strong> Whether cause-and-effect relationships are preserved.</p>
+                    <ul>
+                        <li><strong>✅ Preserved:</strong> If A causes B, all nodes see A before B</li>
+                        <li><strong>⚠️ Partial:</strong> Some causal relationships preserved</li>
+                        <li><strong>❌ Not Preserved:</strong> Causal relationships can be violated</li>
+                    </ul>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>🔄 Availability</h4>
+                    <p><strong>What it measures:</strong> System's ability to remain operational during failures.</p>
+                    <ul>
+                        <li><strong>✅ Totally Available:</strong> Works during any network partition</li>
+                        <li><strong>✅ Sticky Available:</strong> Available for single-user sessions</li>
+                        <li><strong>⚠️ Limited:</strong> Available in some partition scenarios</li>
+                        <li><strong>❌ Not Available:</strong> Stops working during partitions</li>
+                    </ul>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>📊 Performance Impact</h4>
+                    <p><strong>What it measures:</strong> How consistency requirements affect system performance.</p>
+                    <ul>
+                        <li><strong>Latency:</strong> Time to complete operations</li>
+                        <li><strong>Throughput:</strong> Number of operations per second</li>
+                        <li><strong>Network Overhead:</strong> Communication required between nodes</li>
+                        <li><strong>Complexity:</strong> Implementation and operational difficulty</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Overview Comparison</h2>
+            <div class="filter-controls">
+                <button class="filter-btn active" onclick="filterTable('all')">All Models</button>
+                <button class="filter-btn" onclick="filterTable('strong')">Strong Models</button>
+                <button class="filter-btn" onclick="filterTable('weak')">Weak Models</button>
+                <button class="filter-btn" onclick="filterTable('available')">Available Models</button>
+            </div>
+            
+            <div class="table-container">
+                <table id="overview-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Strength</th>
+                            <th>Real-time Order</th>
+                            <th>Global Order</th>
+                            <th>Causality</th>
+                            <th>Availability</th>
+                            <th>Primary Use Cases</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-category="strong">
+                            <td class="model-name">Strict Serializable</td>
+                            <td class="strength-strongest">Strongest</td>
+                            <td class="check">✅ Required</td>
+                            <td class="check">✅ Required</td>
+                            <td class="check">✅ Preserved</td>
+                            <td class="cross">❌ Not Available</td>
+                            <td>Banking, Financial Systems</td>
+                        </tr>
+                        <tr data-category="strong">
+                            <td class="model-name">Linearizable</td>
+                            <td class="strength-strong">Very Strong</td>
+                            <td class="check">✅ Required</td>
+                            <td class="check">✅ Required</td>
+                            <td class="check">✅ Preserved</td>
+                            <td class="cross">❌ Not Available</td>
+                            <td>Configuration, Coordination</td>
+                        </tr>
+                        <tr data-category="strong">
+                            <td class="model-name">Sequential</td>
+                            <td class="strength-strong">Strong</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="check">✅ Required</td>
+                            <td class="check">✅ Preserved</td>
+                            <td class="cross">❌ Not Available</td>
+                            <td>Distributed Caches</td>
+                        </tr>
+                        <tr data-category="strong">
+                            <td class="model-name">Serializable</td>
+                            <td class="strength-strong">Strong</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="check">✅ Required</td>
+                            <td class="check">✅ Preserved</td>
+                            <td class="cross">❌ Not Available</td>
+                            <td>ACID Databases</td>
+                        </tr>
+                        <tr data-category="medium">
+                            <td class="model-name">Snapshot Isolation</td>
+                            <td class="strength-medium">Medium-Strong</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="partial">⚠️ Partial</td>
+                            <td class="partial">⚠️ Limited</td>
+                            <td>MVCC Databases</td>
+                        </tr>
+                        <tr data-category="medium">
+                            <td class="model-name">Repeatable Read</td>
+                            <td class="strength-medium">Medium-Strong</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="partial">⚠️ Partial</td>
+                            <td class="partial">⚠️ Limited</td>
+                            <td>SQL Databases</td>
+                        </tr>
+                        <tr data-category="medium">
+                            <td class="model-name">Causal</td>
+                            <td class="strength-medium">Medium</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="check">✅ Preserved</td>
+                            <td class="partial">⚠️ Limited</td>
+                            <td>Social Media, Chat</td>
+                        </tr>
+                        <tr data-category="weak">
+                            <td class="model-name">PRAM</td>
+                            <td class="strength-weak">Medium-Weak</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="partial">⚠️ Per-Process</td>
+                            <td class="check">✅ Available</td>
+                            <td>Distributed Systems</td>
+                        </tr>
+                        <tr data-category="weak">
+                            <td class="model-name">Read Committed</td>
+                            <td class="strength-weak">Weak</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="cross">❌ Not Preserved</td>
+                            <td class="check">✅ Available</td>
+                            <td>Web Applications</td>
+                        </tr>
+                        <tr data-category="weak available">
+                            <td class="model-name">Monotonic Reads</td>
+                            <td class="strength-weak">Weak</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="cross">❌ Not Preserved</td>
+                            <td class="check">✅ Sticky Available</td>
+                            <td>Session-based Apps</td>
+                        </tr>
+                        <tr data-category="weak available">
+                            <td class="model-name">Read Your Writes</td>
+                            <td class="strength-weak">Weak</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="cross">❌ Not Preserved</td>
+                            <td class="check">✅ Sticky Available</td>
+                            <td>User Profiles</td>
+                        </tr>
+                        <tr data-category="weak available">
+                            <td class="model-name">Eventual</td>
+                            <td class="strength-weakest">Weakest</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="cross">❌ Not Required</td>
+                            <td class="cross">❌ Not Preserved</td>
+                            <td class="check">✅ Totally Available</td>
+                            <td>DNS, CDN</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Transaction Isolation Levels</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Dirty Read</th>
+                            <th>Non-repeatable Read</th>
+                            <th>Phantom Read</th>
+                            <th>Write Skew</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="model-name">Strict Serializable</td>
+                            <td class="check">❌ Prevented</td>
+                            <td class="check">❌ Prevented</td>
+                            <td class="check">❌ Prevented</td>
+                            <td class="check">❌ Prevented</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Serializable</td>
+                            <td class="check">❌ Prevented</td>
+                            <td class="check">❌ Prevented</td>
+                            <td class="check">❌ Prevented</td>
+                            <td class="check">❌ Prevented</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Repeatable Read</td>
+                            <td class="check">❌ Prevented</td>
+                            <td class="check">❌ Prevented</td>
+                            <td class="cross">✅ Possible</td>
+                            <td class="cross">✅ Possible</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Snapshot Isolation</td>
+                            <td class="check">❌ Prevented</td>
+                            <td class="check">❌ Prevented</td>
+                            <td class="check">❌ Prevented</td>
+                            <td class="cross">✅ Possible</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Read Committed</td>
+                            <td class="check">❌ Prevented</td>
+                            <td class="cross">✅ Possible</td>
+                            <td class="cross">✅ Possible</td>
+                            <td class="cross">✅ Possible</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Read Uncommitted</td>
+                            <td class="cross">✅ Possible</td>
+                            <td class="cross">✅ Possible</td>
+                            <td class="cross">✅ Possible</td>
+                            <td class="cross">✅ Possible</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Performance Characteristics</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Latency</th>
+                            <th>Throughput</th>
+                            <th>Network Overhead</th>
+                            <th>Implementation Complexity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="model-name">Strict Serializable</td>
+                            <td class="cross">Very High</td>
+                            <td class="cross">Very Low</td>
+                            <td class="cross">Very High</td>
+                            <td class="cross">Very Complex</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Linearizable</td>
+                            <td class="cross">High</td>
+                            <td class="cross">Low</td>
+                            <td class="cross">High</td>
+                            <td class="cross">Complex</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Sequential</td>
+                            <td class="cross">High</td>
+                            <td class="cross">Low</td>
+                            <td class="cross">High</td>
+                            <td class="cross">Complex</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Serializable</td>
+                            <td class="cross">High</td>
+                            <td class="cross">Low</td>
+                            <td class="partial">Medium</td>
+                            <td class="cross">Complex</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Snapshot Isolation</td>
+                            <td class="partial">Medium</td>
+                            <td class="partial">Medium</td>
+                            <td class="partial">Medium</td>
+                            <td class="partial">Medium</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Causal</td>
+                            <td class="partial">Medium</td>
+                            <td class="partial">Medium</td>
+                            <td class="partial">Medium</td>
+                            <td class="partial">Medium</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">PRAM</td>
+                            <td class="check">Low</td>
+                            <td class="check">High</td>
+                            <td class="check">Low</td>
+                            <td class="check">Simple</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Read Committed</td>
+                            <td class="check">Low</td>
+                            <td class="check">High</td>
+                            <td class="check">Low</td>
+                            <td class="check">Simple</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Session Guarantees</td>
+                            <td class="check">Low</td>
+                            <td class="check">High</td>
+                            <td class="check">Low</td>
+                            <td class="check">Simple</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Eventual</td>
+                            <td class="check">Very Low</td>
+                            <td class="check">Very High</td>
+                            <td class="check">Very Low</td>
+                            <td class="check">Very Simple</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Real-World System Examples</h2>
+            <div class="use-case-grid">
+                <div class="use-case-card">
+                    <h4>🏦 Financial Systems</h4>
+                    <div class="model">Strict Serializable</div>
+                    <p>Google Spanner, FaunaDB, FoundationDB - Critical correctness requirements</p>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>⚙️ Configuration Systems</h4>
+                    <div class="model">Linearizable</div>
+                    <p>etcd, Consul, Zookeeper - Coordination and leader election</p>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>🗄️ ACID Databases</h4>
+                    <div class="model">Serializable</div>
+                    <p>PostgreSQL, MySQL - Traditional relational databases</p>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>💬 Social Media</h4>
+                    <div class="model">Causal</div>
+                    <p>MongoDB (with causal reads) - Preserve conversation flow</p>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>🌐 Content Delivery</h4>
+                    <div class="model">Eventual</div>
+                    <p>DNS, CDNs, Redis, DynamoDB - High availability priority</p>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>🛒 E-commerce</h4>
+                    <div class="model">Mixed Models</div>
+                    <p>Cart: Eventual, Inventory: Linearizable, Payments: Strict Serializable</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Decision Matrix</h2>
+            <div class="decision-matrix">
+                <h3>🎯 Interactive Decision Guide</h3>
+                <p>Answer these questions to find the right consistency model for your use case:</p>
+                
+                <div class="decision-flow">
+                    <div class="decision-card critical">
+                        <h4>🚨 Is Absolute Correctness Critical?</h4>
+                        <p><strong>Examples:</strong> Banking, payments, inventory, medical records</p>
+                        <div class="decision-result">
+                            <span class="model-badge strongest">Strict Serializable</span>
+                            <ul>
+                                <li>✅ Zero tolerance for inconsistencies</li>
+                                <li>✅ ACID compliance required</li>
+                                <li>❌ Accept higher latency (100-500ms)</li>
+                                <li>❌ Lower availability during partitions</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="decision-card coordination">
+                        <h4>⚙️ Need Strong Coordination?</h4>
+                        <p><strong>Examples:</strong> Configuration systems, leader election, distributed locks</p>
+                        <div class="decision-result">
+                            <span class="model-badge strong">Linearizable</span>
+                            <ul>
+                                <li>✅ Single-object strong consistency</li>
+                                <li>✅ Real-time ordering guaranteed</li>
+                                <li>⚠️ Medium latency (50-200ms)</li>
+                                <li>❌ Not available during network splits</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="decision-card ordering">
+                        <h4>🔄 Need Global Ordering?</h4>
+                        <p><strong>Examples:</strong> Distributed caches, replicated logs, event sourcing</p>
+                        <div class="decision-result">
+                            <span class="model-badge medium">Sequential Consistency</span>
+                            <ul>
+                                <li>✅ All nodes see same operation order</li>
+                                <li>✅ Good for state machine replication</li>
+                                <li>⚠️ Medium latency (20-100ms)</li>
+                                <li>❌ Limited availability during partitions</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="decision-card causality">
+                        <h4>🔗 Are Cause-Effect Relationships Important?</h4>
+                        <p><strong>Examples:</strong> Social media, chat, collaborative editing, forums</p>
+                        <div class="decision-result">
+                            <span class="model-badge medium">Causal Consistency</span>
+                            <ul>
+                                <li>✅ Preserves conversation flow</li>
+                                <li>✅ Good performance (10-50ms)</li>
+                                <li>✅ Available during most partitions</li>
+                                <li>⚠️ Complex to implement correctly</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="decision-card personal">
+                        <h4>👤 Is Per-User Consistency Enough?</h4>
+                        <p><strong>Examples:</strong> User profiles, shopping carts, personal settings</p>
+                        <div class="decision-result">
+                            <span class="model-badge weak">Session Guarantees</span>
+                            <ul>
+                                <li>✅ Users see their own changes</li>
+                                <li>✅ Low latency (5-20ms)</li>
+                                <li>✅ High availability (99.9%+)</li>
+                                <li>❌ No global consistency guarantees</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="decision-card performance">
+                        <h4>🚀 Is Maximum Performance/Availability Priority?</h4>
+                        <p><strong>Examples:</strong> DNS, CDNs, analytics, caching, content delivery</p>
+                        <div class="decision-result">
+                            <span class="model-badge weakest">Eventual Consistency</span>
+                            <ul>
+                                <li>✅ Maximum availability (99.99%+)</li>
+                                <li>✅ Lowest latency (1-10ms)</li>
+                                <li>✅ Scales globally</li>
+                                <li>❌ Temporary inconsistencies possible</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="decision-summary">
+                    <h3>📊 Quick Reference Matrix</h3>
+                    <div class="matrix-grid">
+                        <div class="matrix-cell">
+                            <h4>High Correctness</h4>
+                            <span class="model-badge strongest">Strict Serializable</span>
+                            <span class="model-badge strong">Linearizable</span>
+                        </div>
+                        <div class="matrix-cell">
+                            <h4>Balanced Trade-offs</h4>
+                            <span class="model-badge medium">Sequential</span>
+                            <span class="model-badge medium">Causal</span>
+                        </div>
+                        <div class="matrix-cell">
+                            <h4>High Performance</h4>
+                            <span class="model-badge weak">Session</span>
+                            <span class="model-badge weakest">Eventual</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-bottom">
+            <a href="guide.html" class="nav-btn">← Complete Guide</a>
+            <a href="examples.html" class="nav-btn">Code Examples →</a>
+        </div>
+    </div>
+
+    <script>
+        function filterTable(category) {
+            const table = document.getElementById('overview-table');
+            const rows = table.querySelectorAll('tbody tr');
+            const buttons = document.querySelectorAll('.filter-btn');
+            
+            // Update button states
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Filter rows
+            rows.forEach(row => {
+                if (category === 'all') {
+                    row.style.display = '';
+                } else {
+                    const categories = row.dataset.category.split(' ');
+                    if (categories.includes(category)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

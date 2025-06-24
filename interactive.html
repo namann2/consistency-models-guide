@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Demo - Consistency Model DeepDive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 40px rgba(0,0,0,0.2);
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+        }
+        
+        .demo-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f7fafc;
+        }
+        
+        .model-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .model-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .model-btn.active {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .strict-serializable { background: #ff6b6b; color: white; }
+        .linearizable { background: #fd79a8; color: white; }
+        .sequential { background: #fdcb6e; color: black; }
+        .causal { background: #6c5ce7; color: white; }
+        .eventual { background: #74b9ff; color: white; }
+        
+        .timeline {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #4299e1;
+        }
+        
+        .process {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: #edf2f7;
+        }
+        
+        .operation {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .read { background: #bee3f8; color: #2b6cb0; }
+        .write { background: #fbb6ce; color: #b83280; }
+        .result { background: #c6f6d5; color: #276749; }
+        
+        .explanation {
+            margin: 15px 0;
+            padding: 15px;
+            background: #fffbeb;
+            border-left: 4px solid #f6ad55;
+            border-radius: 4px;
+        }
+        
+        .scenario-controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            background: #4299e1;
+            color: white;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #3182ce;
+        }
+        
+        .hierarchy-viz {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .level {
+            margin: 15px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .model-box {
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            min-width: 120px;
+            text-align: center;
+        }
+        
+        .arrow {
+            font-size: 24px;
+            color: #4a5568;
+            margin: 10px;
+        }
+        
+        .performance-chart {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .metric {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .bar {
+            height: 100px;
+            width: 30px;
+            margin: 10px auto;
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .bar-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            border-radius: 4px;
+            transition: height 0.5s ease;
+        }
+        
+        .consistency-bar { background: #4299e1; }
+        .availability-bar { background: #48bb78; }
+        .performance-bar { background: #ed8936; }
+        
+        .interactive-hierarchy {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .clickable {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .clickable:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-color: rgba(255,255,255,0.3);
+        }
+        
+        .model-title {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        
+        .model-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+        
+        .model-details-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border-left: 4px solid #667eea;
+            min-height: 200px;
+        }
+        
+        .model-details-panel h3 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+        
+        .model-details-panel ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .model-details-panel li {
+            padding: 0.5rem 0;
+            color: #4a5568;
+        }
+        
+        .detail-section {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        .detail-definition {
+            border-left-color: #4299e1;
+            background: #ebf8ff;
+        }
+        
+        .detail-analogy {
+            border-left-color: #f6ad55;
+            background: #fffbeb;
+        }
+        
+        .detail-performance {
+            border-left-color: #48bb78;
+            background: #f0fff4;
+        }
+        
+        .detail-applications {
+            border-left-color: #9f7aea;
+            background: #faf5ff;
+        }
+        
+        .detail-tradeoffs {
+            border-left-color: #ed8936;
+            background: #fffaf0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Overview</a>
+        <h1>🔄 Interactive Consistency Model Explorer</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 2rem;">Explore consistency models through interactive scenarios and real-time visualizations</p>
+        
+        <div class="demo-section">
+            <h2>🎮 Interactive Model Explorer</h2>
+            <p>Click on any consistency model below to see its properties, trade-offs, and real-world applications:</p>
+            
+            <div class="interactive-hierarchy">
+                <div class="level">
+                    <div class="model-box strict-serializable clickable" onclick="showModelDetails('strict-serializable')">
+                        <div class="model-title">Strict Serializable</div>
+                        <div class="model-subtitle">🔒 Strongest</div>
+                    </div>
+                </div>
+                <div class="arrow">↓</div>
+                <div class="level">
+                    <div class="model-box linearizable clickable" onclick="showModelDetails('linearizable')">
+                        <div class="model-title">Linearizable</div>
+                        <div class="model-subtitle">⏰ Real-time</div>
+                    </div>
+                    <div class="model-box strict-serializable clickable" onclick="showModelDetails('serializable')">
+                        <div class="model-title">Serializable</div>
+                        <div class="model-subtitle">📋 ACID</div>
+                    </div>
+                </div>
+                <div class="arrow">↓</div>
+                <div class="level">
+                    <div class="model-box sequential clickable" onclick="showModelDetails('sequential')">
+                        <div class="model-title">Sequential</div>
+                        <div class="model-subtitle">🔄 Global Order</div>
+                    </div>
+                    <div class="model-box sequential clickable" onclick="showModelDetails('snapshot')">
+                        <div class="model-title">Snapshot Isolation</div>
+                        <div class="model-subtitle">📸 MVCC</div>
+                    </div>
+                </div>
+                <div class="arrow">↓</div>
+                <div class="level">
+                    <div class="model-box causal clickable" onclick="showModelDetails('causal')">
+                        <div class="model-title">Causal</div>
+                        <div class="model-subtitle">🔗 Cause-Effect</div>
+                    </div>
+                    <div class="model-box causal clickable" onclick="showModelDetails('read-committed')">
+                        <div class="model-title">Read Committed</div>
+                        <div class="model-subtitle">✅ No Dirty Reads</div>
+                    </div>
+                </div>
+                <div class="arrow">↓</div>
+                <div class="level">
+                    <div class="model-box eventual clickable" onclick="showModelDetails('session')">
+                        <div class="model-title">Session Guarantees</div>
+                        <div class="model-subtitle">👤 Per-User</div>
+                    </div>
+                </div>
+                <div class="arrow">↓</div>
+                <div class="level">
+                    <div class="model-box eventual clickable" onclick="showModelDetails('eventual')">
+                        <div class="model-title">Eventual</div>
+                        <div class="model-subtitle">🕐 Eventually</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="model-details" class="model-details-panel">
+                <h3>Select a consistency model above to explore its details</h3>
+                <p>Click on any model in the hierarchy to see:</p>
+                <ul>
+                    <li>📋 Detailed definition and properties</li>
+                    <li>💡 Real-world analogies</li>
+                    <li>📊 Performance characteristics</li>
+                    <li>🏢 Example applications</li>
+                    <li>⚖️ Trade-offs and limitations</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🏦 Banking Transfer Scenario</h2>
+            <p>Alice transfers $30 from Account A ($100) to Account B ($50). How do different consistency models handle concurrent reads?</p>
+            
+            <div class="model-selector">
+                <button class="model-btn strict-serializable active" onclick="showBankingScenario('strict')">Strict Serializable</button>
+                <button class="model-btn linearizable" onclick="showBankingScenario('snapshot')">Snapshot Isolation</button>
+                <button class="model-btn sequential" onclick="showBankingScenario('committed')">Read Committed</button>
+                <button class="model-btn eventual" onclick="showBankingScenario('eventual')">Eventual</button>
+            </div>
+            
+            <div id="banking-demo">
+                <div class="timeline">
+                    <div class="process">
+                        <strong>Transfer Transaction:</strong>
+                        <span class="operation read">Read A: $100</span>
+                        <span class="operation write">Write A: $70</span>
+                        <span class="operation read">Read B: $50</span>
+                        <span class="operation write">Write B: $80</span>
+                    </div>
+                </div>
+                <div class="timeline">
+                    <div class="process">
+                        <strong>Concurrent Read:</strong>
+                        <span class="operation read">Read A: $70</span>
+                        <span class="operation read">Read B: $80</span>
+                        <span class="operation result">✅ Consistent State</span>
+                    </div>
+                </div>
+                <div class="explanation">
+                    <strong>Strict Serializable:</strong> The concurrent read sees either the complete before-state (A=$100, B=$50) or the complete after-state (A=$70, B=$80). Never a partial state that would violate the transfer invariant.
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>💬 Social Media Feed Scenario</h2>
+            <p>Alice posts "Hello World!" then comments "My first post!". How do different users see this sequence?</p>
+            
+            <div class="scenario-controls">
+                <button class="btn" onclick="showSocialScenario('causal')">Causal Consistency</button>
+                <button class="btn" onclick="showSocialScenario('sequential')">Sequential Consistency</button>
+                <button class="btn" onclick="showSocialScenario('eventual')">Eventual Consistency</button>
+            </div>
+            
+            <div id="social-demo">
+                <div class="timeline">
+                    <div class="process">
+                        <strong>Alice:</strong>
+                        <span class="operation write">Post: "Hello World!"</span>
+                        <span class="operation write">Comment: "My first post!"</span>
+                    </div>
+                </div>
+                <div class="timeline">
+                    <div class="process">
+                        <strong>All Users See:</strong>
+                        <span class="operation result">✅ Post before Comment (causally ordered)</span>
+                    </div>
+                </div>
+                <div class="explanation">
+                    <strong>Causal Consistency:</strong> All users must see the post before the comment since the comment causally depends on the post. However, concurrent posts from different users can appear in any order.
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>📈 Performance vs Consistency Trade-offs</h2>
+            <div class="model-selector">
+                <button class="model-btn strict-serializable" onclick="showPerformance('strict')">Strict Serializable</button>
+                <button class="model-btn linearizable" onclick="showPerformance('linearizable')">Linearizable</button>
+                <button class="model-btn sequential" onclick="showPerformance('sequential')">Sequential</button>
+                <button class="model-btn causal" onclick="showPerformance('causal')">Causal</button>
+                <button class="model-btn eventual" onclick="showPerformance('eventual')">Eventual</button>
+            </div>
+            
+            <div class="performance-chart">
+                <div class="metric">
+                    <h4>Consistency</h4>
+                    <div class="bar">
+                        <div class="bar-fill consistency-bar" id="consistency-bar" style="height: 100%;"></div>
+                    </div>
+                    <span id="consistency-label">Strongest</span>
+                </div>
+                <div class="metric">
+                    <h4>Availability</h4>
+                    <div class="bar">
+                        <div class="bar-fill availability-bar" id="availability-bar" style="height: 20%;"></div>
+                    </div>
+                    <span id="availability-label">Not Available</span>
+                </div>
+                <div class="metric">
+                    <h4>Performance</h4>
+                    <div class="bar">
+                        <div class="bar-fill performance-bar" id="performance-bar" style="height: 20%;"></div>
+                    </div>
+                    <span id="performance-label">~500ms latency</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🎯 Use Case Recommendations</h2>
+            <div id="use-cases">
+                <div class="timeline">
+                    <div class="process">
+                        <strong>🏦 Financial Systems:</strong>
+                        <span class="operation strict-serializable">Strict Serializable</span>
+                        <span class="explanation">Critical correctness, can tolerate high latency</span>
+                    </div>
+                </div>
+                <div class="timeline">
+                    <div class="process">
+                        <strong>⚙️ Configuration Systems:</strong>
+                        <span class="operation linearizable">Linearizable</span>
+                        <span class="explanation">Need strong consistency for coordination</span>
+                    </div>
+                </div>
+                <div class="timeline">
+                    <div class="process">
+                        <strong>💬 Social Media:</strong>
+                        <span class="operation causal">Causal Consistency</span>
+                        <span class="explanation">Preserve conversation flow, allow concurrency</span>
+                    </div>
+                </div>
+                <div class="timeline">
+                    <div class="process">
+                        <strong>🌐 CDN/DNS:</strong>
+                        <span class="operation eventual">Eventual Consistency</span>
+                        <span class="explanation">Prioritize availability and performance</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showBankingScenario(model) {
+            // Update active button
+            document.querySelectorAll('.model-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const scenarios = {
+                strict: {
+                    timeline: `
+                        <div class="timeline">
+                            <div class="process">
+                                <strong>Transfer Transaction:</strong>
+                                <span class="operation read">Read A: $100</span>
+                                <span class="operation write">Write A: $70</span>
+                                <span class="operation read">Read B: $50</span>
+                                <span class="operation write">Write B: $80</span>
+                            </div>
+                        </div>
+                        <div class="timeline">
+                            <div class="process">
+                                <strong>Concurrent Read:</strong>
+                                <span class="operation result">Either (A=$100, B=$50) OR (A=$70, B=$80)</span>
+                            </div>
+                        </div>
+                    `,
+                    explanation: '<strong>Strict Serializable:</strong> Guarantees atomic visibility. The concurrent read sees either the complete before-state or after-state, never a partial state.'
+                },
+                snapshot: {
+                    timeline: `
+                        <div class="timeline">
+                            <div class="process">
+                                <strong>T1 (Transfer):</strong>
+                                <span class="operation read">Snapshot: A=$100, B=$50</span>
+                                <span class="operation write">Write A=$70, B=$80</span>
+                            </div>
+                        </div>
+                        <div class="timeline">
+                            <div class="process">
+                                <strong>T2 (Read):</strong>
+                                <span class="operation read">Snapshot: A=$100, B=$50</span>
+                                <span class="operation result">Sees old snapshot</span>
+                            </div>
+                        </div>
+                    `,
+                    explanation: '<strong>Snapshot Isolation:</strong> Each transaction sees a consistent snapshot from when it started. T2 might not see T1\'s changes even after T1 commits.'
+                },
+                committed: {
+                    timeline: `
+                        <div class="timeline">
+                            <div class="process">
+                                <strong>Transfer:</strong>
+                                <span class="operation write">Write A=$70 (uncommitted)</span>
+                                <span class="operation write">Write B=$80, Commit</span>
+                            </div>
+                        </div>
+                        <div class="timeline">
+                            <div class="process">
+                                <strong>Concurrent Read:</strong>
+                                <span class="operation read">Read A=$100</span>
+                                <span class="operation read">Read B=$80</span>
+                                <span class="operation result">⚠️ Inconsistent state</span>
+                            </div>
+                        </div>
+                    `,
+                    explanation: '<strong>Read Committed:</strong> Can only see committed data, but might see inconsistent states during concurrent transactions.'
+                },
+                eventual: {
+                    timeline: `
+                        <div class="timeline">
+                            <div class="process">
+                                <strong>Node 1:</strong>
+                                <span class="operation write">A=$70, B=$80</span>
+                                <span class="operation result">Updated immediately</span>
+                            </div>
+                        </div>
+                        <div class="timeline">
+                            <div class="process">
+                                <strong>Node 2:</strong>
+                                <span class="operation read">A=$100, B=$50</span>
+                                <span class="operation result">Eventually: A=$70, B=$80</span>
+                            </div>
+                        </div>
+                    `,
+                    explanation: '<strong>Eventual Consistency:</strong> Updates propagate asynchronously. Different nodes might see different states temporarily, but eventually converge.'
+                }
+            };
+            
+            document.getElementById('banking-demo').innerHTML = scenarios[model].timeline + 
+                `<div class="explanation">${scenarios[model].explanation}</div>`;
+        }
+        
+        function showSocialScenario(model) {
+            const scenarios = {
+                causal: {
+                    timeline: `
+                        <div class="timeline">
+                            <div class="process">
+                                <strong>Alice:</strong>
+                                <span class="operation write">Post: "Hello World!"</span>
+                                <span class="operation write">Comment: "My first post!"</span>
+                            </div>
+                        </div>
+                        <div class="timeline">
+                            <div class="process">
+                                <strong>All Users:</strong>
+                                <span class="operation result">✅ Always see Post → Comment</span>
+                            </div>
+                        </div>
+                    `,
+                    explanation: '<strong>Causal Consistency:</strong> Preserves cause-and-effect relationships. All users see causally related operations in the correct order.'
+                },
+                sequential: {
+                    timeline: `
+                        <div class="timeline">
+                            <div class="process">
+                                <strong>Global Order:</strong>
+                                <span class="operation write">1. Alice: Post</span>
+                                <span class="operation write">2. Bob: Post</span>
+                                <span class="operation write">3. Alice: Comment</span>
+                            </div>
+                        </div>
+                        <div class="timeline">
+                            <div class="process">
+                                <strong>All Users:</strong>
+                                <span class="operation result">✅ See same order everywhere</span>
+                            </div>
+                        </div>
+                    `,
+                    explanation: '<strong>Sequential Consistency:</strong> All operations appear in the same order to all users, but order might not match real-time.'
+                },
+                eventual: {
+                    timeline: `
+                        <div class="timeline">
+                            <div class="process">
+                                <strong>User in US:</strong>
+                                <span class="operation read">Sees: Post, Comment</span>
+                            </div>
+                        </div>
+                        <div class="timeline">
+                            <div class="process">
+                                <strong>User in Europe:</strong>
+                                <span class="operation read">Sees: Comment only (delayed)</span>
+                                <span class="operation result">Eventually sees both</span>
+                            </div>
+                        </div>
+                    `,
+                    explanation: '<strong>Eventual Consistency:</strong> Updates propagate at different speeds. Users might temporarily see different views, but eventually converge.'
+                }
+            };
+            
+            document.getElementById('social-demo').innerHTML = scenarios[model].timeline + 
+                `<div class="explanation">${scenarios[model].explanation}</div>`;
+        }
+        
+        function showPerformance(model) {
+            const metrics = {
+                strict: { consistency: 100, availability: 20, performance: 20, perfLabel: '~500ms latency', availLabel: 'Not Available' },
+                linearizable: { consistency: 90, availability: 30, performance: 30, perfLabel: '~200ms latency', availLabel: 'Limited' },
+                sequential: { consistency: 80, availability: 40, performance: 40, perfLabel: '~100ms latency', availLabel: 'Limited' },
+                causal: { consistency: 60, availability: 70, performance: 70, perfLabel: '~50ms latency', availLabel: 'Available' },
+                eventual: { consistency: 30, availability: 100, performance: 100, perfLabel: '~1ms latency', availLabel: 'Highly Available' }
+            };
+            
+            const m = metrics[model];
+            document.getElementById('consistency-bar').style.height = m.consistency + '%';
+            document.getElementById('availability-bar').style.height = m.availability + '%';
+            document.getElementById('performance-bar').style.height = m.performance + '%';
+            document.getElementById('performance-label').textContent = m.perfLabel;
+            document.getElementById('availability-label').textContent = m.availLabel;
+            
+            const consistencyLabels = {
+                strict: 'Strongest', linearizable: 'Very Strong', sequential: 'Strong',
+                causal: 'Medium', eventual: 'Weakest'
+            };
+            document.getElementById('consistency-label').textContent = consistencyLabels[model];
+        }
+        
+        function showModelDetails(model) {
+            const modelData = {
+                'strict-serializable': {
+                    title: 'Strict Serializable',
+                    definition: 'The strongest consistency model that combines serializability (for transactions) with linearizability (for real-time ordering).',
+                    analogy: 'Like a high-security bank vault where complex transactions happen atomically in real-time order, with no interference between operations.',
+                    performance: 'Highest consistency, lowest availability (~90%), highest latency (~500ms). Requires global coordination.',
+                    applications: 'Banking systems, financial transactions, inventory management, any system where correctness is absolutely critical.',
+                    tradeoffs: 'Provides strongest guarantees but severely limits availability and performance. Not achievable in asynchronous networks.'
+                },
+                'linearizable': {
+                    title: 'Linearizable',
+                    definition: 'Every operation appears to take effect atomically at some point between its start and completion, respecting real-time ordering.',
+                    analogy: 'Like a single-window bank teller serving customers one at a time - each transaction completes before the next begins.',
+                    performance: 'Very high consistency, limited availability (~95%), high latency (~200ms). Requires coordination.',
+                    applications: 'Configuration systems, leader election, coordination services like Zookeeper, distributed locks.',
+                    tradeoffs: 'Strong consistency for single objects but not available during network partitions. Simpler than strict serializable.'
+                },
+                'serializable': {
+                    title: 'Serializable',
+                    definition: 'Transactions appear to execute in some serial order, but real-time ordering is not required.',
+                    analogy: 'Like a restaurant kitchen where orders are completed in sequence, but not necessarily in the order received.',
+                    performance: 'High consistency, limited availability (~95%), high latency (~300ms). Database-level coordination.',
+                    applications: 'ACID databases, PostgreSQL, MySQL with serializable isolation, traditional relational systems.',
+                    tradeoffs: 'Prevents all transaction anomalies but can have lower performance due to serialization conflicts.'
+                },
+                'sequential': {
+                    title: 'Sequential Consistency',
+                    definition: 'All operations appear to execute in some sequential order, and each process sees operations in the same order.',
+                    analogy: 'Like a group chat where everyone receives messages in the same order, regardless of network delays.',
+                    performance: 'Strong consistency, limited availability (~99%), medium latency (~100ms). Global ordering required.',
+                    applications: 'Distributed caches, replicated state machines, systems where global ordering matters.',
+                    tradeoffs: 'Weaker than linearizable but still requires global coordination. Good balance of consistency and performance.'
+                },
+                'snapshot': {
+                    title: 'Snapshot Isolation',
+                    definition: 'Each transaction sees a consistent snapshot of the database as of the time it started.',
+                    analogy: 'Like taking a photograph of a busy street - your photo shows a consistent moment in time.',
+                    performance: 'Medium-high consistency, good availability (~99%), medium latency (~80ms). MVCC-based.',
+                    applications: 'MVCC databases, PostgreSQL default level, Oracle, SQL Server, most modern databases.',
+                    tradeoffs: 'Prevents most anomalies but allows write skew. Good performance with reasonable consistency.'
+                },
+                'causal': {
+                    title: 'Causal Consistency',
+                    definition: 'Operations that are causally related must be seen in the same order by all processes.',
+                    analogy: 'Like social media where replies always appear after the posts they respond to.',
+                    performance: 'Medium consistency, good availability (~99.5%), low latency (~50ms). Preserves causality.',
+                    applications: 'Social media feeds, chat systems, collaborative editing, comment threads.',
+                    tradeoffs: 'Preserves important relationships while allowing good performance. Complex to implement correctly.'
+                },
+                'read-committed': {
+                    title: 'Read Committed',
+                    definition: 'Transactions only see data that has been committed by other transactions.',
+                    analogy: 'Like only reading published articles, never seeing rough drafts that writers are still working on.',
+                    performance: 'Low-medium consistency, high availability (~99.9%), low latency (~20ms). Most common level.',
+                    applications: 'Web applications, most database default settings, PostgreSQL default, MySQL.',
+                    tradeoffs: 'Prevents dirty reads but allows non-repeatable reads. Good balance for most applications.'
+                },
+                'session': {
+                    title: 'Session Guarantees',
+                    definition: 'Provides consistency within a single user session: monotonic reads/writes, read your writes.',
+                    analogy: 'Like personal consistency - you always see your own actions and things progress forward.',
+                    performance: 'Low consistency, very high availability (~99.9%), very low latency (~10ms). Per-user.',
+                    applications: 'User profiles, shopping carts, personal dashboards, single-user workflows.',
+                    tradeoffs: 'Great for user-facing features but provides no global consistency guarantees.'
+                },
+                'eventual': {
+                    title: 'Eventual Consistency',
+                    definition: 'All replicas will eventually converge to the same state, but may be inconsistent temporarily.',
+                    analogy: 'Like news spreading through a network - everyone eventually hears the same story.',
+                    performance: 'Lowest consistency, highest availability (~99.99%), lowest latency (~1ms). Maximum performance.',
+                    applications: 'DNS systems, CDNs, DynamoDB, Redis, highly available distributed systems.',
+                    tradeoffs: 'Maximum availability and performance but temporary inconsistencies. Requires conflict resolution.'
+                }
+            };
+            
+            const data = modelData[model];
+            if (data) {
+                document.getElementById('model-details').innerHTML = `
+                    <h3>${data.title}</h3>
+                    <div class="detail-section detail-definition">
+                        <h4>📋 Definition</h4>
+                        <p>${data.definition}</p>
+                    </div>
+                    <div class="detail-section detail-analogy">
+                        <h4>💡 Real-World Analogy</h4>
+                        <p>${data.analogy}</p>
+                    </div>
+                    <div class="detail-section detail-performance">
+                        <h4>📊 Performance Characteristics</h4>
+                        <p>${data.performance}</p>
+                    </div>
+                    <div class="detail-section detail-applications">
+                        <h4>🏢 Example Applications</h4>
+                        <p>${data.applications}</p>
+                    </div>
+                    <div class="detail-section detail-tradeoffs">
+                        <h4>⚖️ Trade-offs & Limitations</h4>
+                        <p>${data.tradeoffs}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Initialize with default scenarios
+        showBankingScenario('strict');
+        showSocialScenario('causal');
+        showPerformance('strict');
+    </script>
+</body>
+</html>

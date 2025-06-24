@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Guide - Consistency Model DeepDive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background: #f8fafc;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .toc {
+            background: #f7fafc;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 3rem;
+            border-left: 4px solid #667eea;
+        }
+        
+        .toc h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+        
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .toc li {
+            margin: 0.5rem 0;
+        }
+        
+        .toc a {
+            color: #4a5568;
+            text-decoration: none;
+            padding: 0.25rem 0;
+            display: block;
+        }
+        
+        .toc a:hover {
+            color: #667eea;
+            text-decoration: underline;
+        }
+        
+        h2 {
+            font-size: 2rem;
+            font-weight: 400;
+            margin: 3rem 0 1.5rem 0;
+            color: #2d3748;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin: 2rem 0 1rem 0;
+            color: #4a5568;
+        }
+        
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.5rem 0;
+            color: #667eea;
+        }
+        
+        p {
+            margin-bottom: 1.5rem;
+            color: #4a5568;
+        }
+        
+        .analogy {
+            background: #fffbeb;
+            border-left: 4px solid #f6ad55;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .analogy strong {
+            color: #dd6b20;
+        }
+        
+        .example {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .example strong {
+            color: #38a169;
+        }
+        
+        .properties {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .properties strong {
+            color: #3182ce;
+        }
+        
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+        
+        code {
+            background: #edf2f7;
+            color: #2d3748;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+        }
+        
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+        
+        ul, ol {
+            margin: 1rem 0 1.5rem 2rem;
+        }
+        
+        li {
+            margin: 0.5rem 0;
+            color: #4a5568;
+        }
+        
+        .model-section {
+            margin: 3rem 0;
+            padding: 2.5rem;
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .model-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .model-section h3 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0 0 1.5rem 0;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .model-number {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .subsection {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid;
+        }
+        
+        .subsection h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .subsection-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .definition-section {
+            border-left-color: #4299e1;
+            background: #ebf8ff;
+        }
+        
+        .definition-section .subsection-icon {
+            background: #4299e1;
+        }
+        
+        .analogy-section {
+            border-left-color: #f6ad55;
+            background: #fffbeb;
+        }
+        
+        .analogy-section .subsection-icon {
+            background: #f6ad55;
+        }
+        
+        .properties-section {
+            border-left-color: #48bb78;
+            background: #f0fff4;
+        }
+        
+        .properties-section .subsection-icon {
+            background: #48bb78;
+        }
+        
+        .example-section {
+            border-left-color: #9f7aea;
+            background: #faf5ff;
+        }
+        
+        .example-section .subsection-icon {
+            background: #9f7aea;
+        }
+        
+        .hierarchy-text {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            text-align: center;
+            line-height: 2;
+        }
+        
+        .nav-bottom {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e2e8f0;
+        }
+        
+        .nav-btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .mermaid-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .nav-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        .trade-off-analysis {
+            margin: 2rem 0;
+        }
+        
+        .trade-off-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .trade-off-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-left: 6px solid;
+            transition: transform 0.3s ease;
+        }
+        
+        .trade-off-card:hover {
+            transform: translateY(-4px);
+        }
+        
+        .trade-off-card.performance-focused {
+            border-left-color: #10b981;
+        }
+        
+        .trade-off-card.balanced {
+            border-left-color: #f59e0b;
+        }
+        
+        .trade-off-card.consistency-focused {
+            border-left-color: #dc2626;
+        }
+        
+        .model-badges {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .model-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .model-badge.eventual {
+            background: #10b981;
+        }
+        
+        .model-badge.session {
+            background: #059669;
+        }
+        
+        .model-badge.causal {
+            background: #f59e0b;
+        }
+        
+        .model-badge.sequential {
+            background: #d97706;
+        }
+        
+        .model-badge.linearizable {
+            background: #dc2626;
+        }
+        
+        .model-badge.strict {
+            background: #991b1b;
+        }
+        
+        .metrics {
+            margin: 1.5rem 0;
+        }
+        
+        .metric {
+            display: flex;
+            align-items: center;
+            margin: 1rem 0;
+            gap: 1rem;
+        }
+        
+        .metric-label {
+            font-weight: 600;
+            min-width: 80px;
+            font-size: 0.9rem;
+        }
+        
+        .metric-bar {
+            flex: 1;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .metric-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .metric-fill.excellent {
+            background: #10b981;
+        }
+        
+        .metric-fill.good {
+            background: #f59e0b;
+        }
+        
+        .metric-fill.poor {
+            background: #dc2626;
+        }
+        
+        .metric-value {
+            font-weight: 600;
+            font-size: 0.85rem;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        .use-cases {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .cap-theorem-note {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .cap-theorem-note h4 {
+            color: #92400e;
+            margin-bottom: 1rem;
+        }
+        
+        .cap-theorem-note p {
+            color: #78350f;
+            margin-bottom: 1rem;
+        }
+        
+        .cap-theorem-note ul {
+            color: #78350f;
+        }
+        
+        .cap-theorem-note em {
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+            .nav-bottom { flex-direction: column; gap: 1rem; }
+            .trade-off-grid { grid-template-columns: 1fr; }
+            .metric { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .metric-label { min-width: auto; }
+            .metric-value { text-align: left; min-width: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="index.html" class="back-link">← Back to Overview</a>
+            <h1>🔄 Complete Guide to Consistency Models</h1>
+            <p>Master distributed system consistency with detailed explanations and simple analogies</p>
+        </header>
+        
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#introduction">Introduction</a></li>
+                <li><a href="#fundamental-concepts">Fundamental Concepts</a></li>
+                <li><a href="#consistency-model-hierarchy">Consistency Model Hierarchy</a></li>
+                <li><a href="#strong-consistency-models">Strong Consistency Models</a></li>
+                <li><a href="#transaction-based-models">Transaction-Based Models</a></li>
+                <li><a href="#single-object-models">Single-Object Models</a></li>
+                <li><a href="#session-guarantees">Session Guarantees</a></li>
+                <li><a href="#model-relationships">Model Relationships and Implications</a></li>
+                <li><a href="#availability-trade-offs">Availability Trade-offs</a></li>
+                <li><a href="#real-world-applications">Real-World Applications</a></li>
+            </ul>
+        </div>
+
+        <section id="introduction">
+            <h2>Introduction</h2>
+            <p>Consistency models define the rules about when and how updates to a distributed system become visible to different parts of the system. Think of consistency models as "rules of engagement" for how multiple processes can interact with shared data in a distributed system.</p>
+            
+            <div class="analogy">
+                <strong>Simple Analogy:</strong> Imagine a shared whiteboard in a classroom where multiple students can write. Consistency models are like different sets of rules:
+                <ul>
+                    <li><strong>Strong rules:</strong> Only one student can write at a time, everyone sees changes immediately</li>
+                    <li><strong>Weak rules:</strong> Multiple students can write simultaneously, but there might be delays in seeing each other's changes</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="fundamental-concepts">
+            <h2>Fundamental Concepts</h2>
+            
+            <h3>Systems and State</h3>
+            <p>A distributed system has a <strong>logical state</strong> that changes over time. For example:</p>
+            <ul>
+                <li>A simple counter: states like <code>0</code>, <code>5</code>, <code>42</code></li>
+                <li>A key-value store: states like <code>{user: "Alice", score: 100}</code></li>
+            </ul>
+
+            <h3>Processes</h3>
+            <p>A <strong>process</strong> is a single-threaded program that performs operations. Think of it as one person using the system at a time.</p>
+
+            <h3>Operations</h3>
+            <p>An <strong>operation</strong> changes the system from one state to another:</p>
+            <ul>
+                <li><code>read(x)</code> → returns current value of x</li>
+                <li><code>write(x, 5)</code> → sets x to 5</li>
+                <li><code>increment(counter)</code> → adds 1 to counter</li>
+            </ul>
+
+            <h3>Concurrency and Time</h3>
+            <p>Operations have:</p>
+            <ul>
+                <li><strong>Invocation time:</strong> when the operation starts</li>
+                <li><strong>Completion time:</strong> when the operation finishes</li>
+                <li><strong>Concurrent operations:</strong> operations that overlap in time</li>
+            </ul>
+            
+            <div class="analogy">
+                <strong>Analogy:</strong> Like phone calls - you dial (invoke), talk (execute), and hang up (complete). Two calls are concurrent if they overlap in time.
+            </div>
+        </section>
+
+        <section id="consistency-model-hierarchy">
+            <h2>Consistency Model Hierarchy</h2>
+            
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    graph TD
+                        SS[Strict Serializable<br/>🔒 Strongest] --> S[Serializable<br/>📋 Transaction Order]
+                        SS --> L[Linearizable<br/>⏰ Real-time Order]
+                        
+                        S --> RR[Repeatable Read<br/>📖 Same Read Results]
+                        S --> SI[Snapshot Isolation<br/>📸 Consistent Snapshots]
+                        
+                        RR --> CS[Cursor Stability<br/>🔍 Stable Cursors]
+                        SI --> MAV[Monotonic Atomic View<br/>📊 Atomic Views]
+                        
+                        CS --> RC[Read Committed<br/>✅ Only Committed Data]
+                        MAV --> RC
+                        
+                        RC --> RU[Read Uncommitted<br/>⚠️ Dirty Reads Allowed]
+                        
+                        L --> SEQ[Sequential Consistency<br/>🔄 Global Order]
+                        SEQ --> CAUSAL[Causal Consistency<br/>🔗 Cause-Effect Order]
+                        
+                        CAUSAL --> WFR[Writes Follow Reads<br/>📝 Read-then-Write]
+                        CAUSAL --> PRAM[PRAM Consistency<br/>🚰 Per-Process Order]
+                        
+                        PRAM --> MR[Monotonic Reads<br/>📈 Never Go Backward]
+                        PRAM --> MW[Monotonic Writes<br/>📤 Write Order Preserved]
+                        PRAM --> RYW[Read Your Writes<br/>👁️ See Own Changes]
+                        
+                        MR --> EC[Eventual Consistency<br/>🕐 Eventually Consistent]
+                        MW --> EC
+                        RYW --> EC
+                        WFR --> RYW
+                        
+                        %% Styling
+                        classDef strongest fill:#ff6b6b,stroke:#d63031,stroke-width:3px,color:#fff
+                        classDef strong fill:#fd79a8,stroke:#e84393,stroke-width:2px,color:#fff
+                        classDef medium fill:#fdcb6e,stroke:#e17055,stroke-width:2px,color:#000
+                        classDef weak fill:#6c5ce7,stroke:#5f3dc4,stroke-width:2px,color:#fff
+                        classDef weakest fill:#74b9ff,stroke:#0984e3,stroke-width:2px,color:#fff
+                        
+                        class SS strongest
+                        class S,L strong
+                        class RR,SI,SEQ,CAUSAL medium
+                        class CS,MAV,RC,WFR,PRAM weak
+                        class MR,MW,RYW,RU,EC weakest
+                </div>
+            </div>
+        </section>
+
+        <section id="strong-consistency-models">
+            <h2>Strong Consistency Models</h2>
+
+            <div class="model-section">
+                <h3><span class="model-number">1</span>Strict Serializable</h3>
+                
+                <div class="subsection definition-section">
+                    <h4><span class="subsection-icon">📋</span>Definition</h4>
+                    <p>The strongest consistency model that combines serializability (for transactions) with linearizability (for real-time ordering).</p>
+                </div>
+                
+                <div class="subsection analogy-section">
+                    <h4><span class="subsection-icon">💡</span>Simple Analogy</h4>
+                    <p>Like a high-security bank vault where:</p>
+                    <ul>
+                        <li>Complex transactions (moving money between accounts) happen atomically</li>
+                        <li>Everything happens in real-time order</li>
+                        <li>No two operations can interfere with each other</li>
+                    </ul>
+                </div>
+
+                <div class="subsection properties-section">
+                    <h4><span class="subsection-icon">⚙️</span>Key Properties</h4>
+                    <ul>
+                        <li>Transactions appear to execute in some serial order</li>
+                        <li>Real-time ordering is preserved</li>
+                        <li>Strongest possible guarantee</li>
+                        <li>Not available in asynchronous networks</li>
+                    </ul>
+                </div>
+
+                <div class="subsection example-section">
+                    <h4><span class="subsection-icon">💻</span>Example</h4>
+                    <p>In a banking transfer scenario where $100 is moved from Account A to Account B, strict serializable consistency ensures that any concurrent read operation sees either the complete before-state or the complete after-state, never a partial state that would violate the transfer invariant.</p>
+                </div>
+            </div>
+
+            <div class="model-section">
+                <h3><span class="model-number">2</span>Linearizable (Atomic Consistency)</h3>
+                
+                <div class="subsection definition-section">
+                    <h4><span class="subsection-icon">📋</span>Definition</h4>
+                    <p>Every operation appears to take effect atomically at some point between its start and completion, respecting real-time ordering.</p>
+                </div>
+                
+                <div class="subsection analogy-section">
+                    <h4><span class="subsection-icon">💡</span>Simple Analogy</h4>
+                    <p>A single-window bank teller serving customers one at a time. No matter how many people are in line, each transaction happens completely before the next one starts, and everyone sees the same account balance.</p>
+                </div>
+
+                <div class="subsection properties-section">
+                    <h4><span class="subsection-icon">⚙️</span>Key Properties</h4>
+                    <ul>
+                        <li>Operations appear instantaneous</li>
+                        <li>Real-time ordering preserved</li>
+                        <li>All processes see the same order</li>
+                        <li>Applies to single objects</li>
+                    </ul>
+                </div>
+
+                <div class="subsection example-section">
+                    <h4><span class="subsection-icon">💻</span>Example</h4>
+                    <p>If Process A writes a value and completes before Process B starts reading, linearizable consistency guarantees that Process B must see the value written by Process A, maintaining real-time ordering.</p>
+                </div>
+            </div>
+
+            <div class="model-section">
+                <h3><span class="model-number">3</span>Sequential Consistency</h3>
+                
+                <div class="subsection definition-section">
+                    <h4><span class="subsection-icon">📋</span>Definition</h4>
+                    <p>All operations appear to execute in some sequential order, and each process sees operations in the same order, but real-time ordering is not required.</p>
+                </div>
+                
+                <div class="subsection analogy-section">
+                    <h4><span class="subsection-icon">💡</span>Simple Analogy</h4>
+                    <p>Like a group chat where everyone receives messages in the same order, but the order might not match exactly when messages were sent due to network delays.</p>
+                </div>
+
+                <div class="subsection properties-section">
+                    <h4><span class="subsection-icon">⚙️</span>Key Properties</h4>
+                    <ul>
+                        <li>Global ordering exists</li>
+                        <li>All processes see same order</li>
+                        <li>Real-time ordering not required</li>
+                        <li>Weaker than linearizability</li>
+                    </ul>
+                </div>
+
+                <div class="subsection example-section">
+                    <h4><span class="subsection-icon">💻</span>Example</h4>
+                    <p>In sequential consistency, if Process A writes x=1 and then Process B writes x=2, all nodes might see either order (x=1 then x=2, or x=2 then x=1) as long as all nodes see the same order. Real-time ordering is not required.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="transaction-based-models">
+            <h2>Transaction-Based Models</h2>
+
+            <div class="model-section">
+                <h3>4. Serializable</h3>
+                
+                <div class="properties">
+                    <strong>Definition:</strong> Transactions appear to execute in some serial order, but real-time ordering is not required.
+                </div>
+                
+                <div class="analogy">
+                    <strong>Simple Analogy:</strong> Like a restaurant kitchen where complex orders are prepared, but they might be completed in a different order than they were received, as long as each complete meal is served properly.
+                </div>
+
+                <div class="properties">
+                    <strong>Key Properties:</strong>
+                    <ul>
+                        <li>Transactions appear atomic</li>
+                        <li>Some serial execution order exists</li>
+                        <li>No real-time constraints</li>
+                        <li>Prevents anomalies like dirty reads, phantom reads</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="model-section">
+                <h3>5. Snapshot Isolation</h3>
+                
+                <div class="properties">
+                    <strong>Definition:</strong> Each transaction sees a consistent snapshot of the database as of the time it started.
+                </div>
+                
+                <div class="analogy">
+                    <strong>Simple Analogy:</strong> Like taking a photograph of a busy street. Your photo shows a consistent moment in time, even though the street continues to change while you're looking at the photo.
+                </div>
+
+                <div class="properties">
+                    <strong>Key Properties:</strong>
+                    <ul>
+                        <li>Transactions see consistent snapshots</li>
+                        <li>No dirty reads or non-repeatable reads</li>
+                        <li>Write-write conflicts are prevented</li>
+                        <li>May allow write skew anomalies</li>
+                    </ul>
+                </div>
+
+                <div class="example">
+                    <strong>Example:</strong>
+                    <p>Two transactions T1 and T2 start simultaneously and see the same snapshot of accounts A and B. T1 updates account A while T2 updates account B. Both transactions can commit successfully since they don't conflict, resulting in both updates being applied to the final state.</p>
+                </div>
+            </div>
+
+            <div class="model-section">
+                <h3>6. Repeatable Read</h3>
+                
+                <div class="properties">
+                    <strong>Definition:</strong> Within a transaction, reading the same data multiple times returns the same result.
+                </div>
+                
+                <div class="analogy">
+                    <strong>Simple Analogy:</strong> Like reading a book where the pages don't change while you're reading it, even if someone else might be editing other copies of the book.
+                </div>
+
+                <div class="properties">
+                    <strong>Key Properties:</strong>
+                    <ul>
+                        <li>No dirty reads</li>
+                        <li>No non-repeatable reads</li>
+                        <li>May allow phantom reads</li>
+                        <li>Weaker than serializable</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="model-section">
+                <h3>7. Read Committed</h3>
+                
+                <div class="properties">
+                    <strong>Definition:</strong> Transactions only see data that has been committed by other transactions.
+                </div>
+                
+                <div class="analogy">
+                    <strong>Simple Analogy:</strong> Like only reading published articles in a newspaper, never seeing the rough drafts that reporters are still working on.
+                </div>
+
+                <div class="properties">
+                    <strong>Key Properties:</strong>
+                    <ul>
+                        <li>No dirty reads</li>
+                        <li>Allows non-repeatable reads</li>
+                        <li>Allows phantom reads</li>
+                        <li>Most common isolation level</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="model-section">
+                <h3>8. Read Uncommitted</h3>
+                
+                <div class="properties">
+                    <strong>Definition:</strong> Transactions can see uncommitted changes from other transactions.
+                </div>
+                
+                <div class="analogy">
+                    <strong>Simple Analogy:</strong> Like being able to peek at someone's rough draft while they're still writing it - you might see changes that get erased later.
+                </div>
+
+                <div class="properties">
+                    <strong>Key Properties:</strong>
+                    <ul>
+                        <li>Allows dirty reads</li>
+                        <li>Weakest transaction isolation</li>
+                        <li>Highest performance, lowest consistency</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="single-object-models">
+            <h2>Single-Object Models</h2>
+
+            <div class="model-section">
+                <h3>9. Causal Consistency</h3>
+                
+                <div class="properties">
+                    <strong>Definition:</strong> Operations that are causally related must be seen in the same order by all processes, but concurrent operations can be seen in different orders.
+                </div>
+                
+                <div class="analogy">
+                    <strong>Simple Analogy:</strong> Like a conversation thread on social media. Everyone must see replies after the original post they're responding to, but if two people comment simultaneously, different users might see those comments in different orders.
+                </div>
+
+                <div class="properties">
+                    <strong>Key Properties:</strong>
+                    <ul>
+                        <li>Preserves cause-and-effect relationships</li>
+                        <li>Concurrent operations can be reordered</li>
+                        <li>Respects "happens-before" relationships</li>
+                        <li>Weaker than sequential consistency</li>
+                    </ul>
+                </div>
+
+                <div class="example">
+                    <strong>Example:</strong>
+                    <p>If Process A writes to x and then writes to y (causally related operations), all nodes must see x's update before y's update. However, if Process B concurrently writes to z, that operation can appear at any point in the sequence since it's not causally related to A's operations.</p>
+                </div>
+            </div>
+
+            <div class="model-section">
+                <h3>10. PRAM Consistency (Pipeline RAM)</h3>
+                
+                <div class="properties">
+                    <strong>Definition:</strong> Each process sees its own operations in the order it issued them, but operations from different processes can be seen in any order.
+                </div>
+                
+                <div class="analogy">
+                    <strong>Simple Analogy:</strong> Like personal diaries that get shared. You always write in your diary in chronological order, and when others read your diary, they see your entries in sequence. But when multiple diaries are combined, entries from different people can be mixed in any order.
+                </div>
+
+                <div class="properties">
+                    <strong>Key Properties:</strong>
+                    <ul>
+                        <li>Per-process ordering preserved</li>
+                        <li>No global ordering requirement</li>
+                        <li>Operations from different processes can be arbitrarily interleaved</li>
+                    </ul>
+                </div>
+
+                <div class="example">
+                    <strong>Example:</strong>
+                    <p>Process A performs a sequence of writes to variable x, while Process B writes to variable y. PRAM consistency ensures that all nodes see A's writes in the order A issued them, and B's writes in the order B issued them. However, the interleaving of A's and B's operations can vary across different nodes.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="session-guarantees">
+            <h2>Session Guarantees</h2>
+
+            <div class="model-section">
+                <h3>11. Monotonic Reads</h3>
+                
+                <div class="properties">
+                    <strong>Definition:</strong> If a process reads a value, any subsequent reads by that process will return the same value or a more recent value.
+                </div>
+                
+                <div class="analogy">
+                    <strong>Simple Analogy:</strong> Like reading a book - once you've read up to page 50, you'll never accidentally flip back and read page 30 thinking it's new content. You can only move forward or stay at the same page.
+                </div>
+
+                <div class="example">
+                    <strong>Example:</strong>
+                    <p>If a process reads x=5 at time T1, then later reads at T2, T3, T4 will return x=5, x=7, x=7 (never a smaller value like x=3). The process can only see the same value or newer values, never going backwards.</p>
+                </div>
+            </div>
+
+            <div class="model-section">
+                <h3>12. Monotonic Writes</h3>
+                
+                <div class="properties">
+                    <strong>Definition:</strong> Writes by a single process are seen by all processes in the order they were issued.
+                </div>
+                
+                <div class="analogy">
+                    <strong>Simple Analogy:</strong> Like sending numbered letters to friends. Even if the postal system is unreliable, your friends will receive letter #1 before letter #2, and letter #2 before letter #3.
+                </div>
+            </div>
+
+            <div class="model-section">
+                <h3>13. Read Your Writes</h3>
+                
+                <div class="properties">
+                    <strong>Definition:</strong> A process always sees the effects of its own previous writes.
+                </div>
+                
+                <div class="analogy">
+                    <strong>Simple Analogy:</strong> Like writing a note and being able to read what you just wrote. You never experience amnesia about your own actions.
+                </div>
+
+                <div class="example">
+                    <strong>Example:</strong>
+                    <p>If a process writes x=10, then immediately reads x, it must return 10 (or a newer value if another process has updated it). The process never experiences amnesia about its own writes.</p>
+                </div>
+            </div>
+
+            <div class="model-section">
+                <h3>14. Writes Follow Reads</h3>
+                
+                <div class="properties">
+                    <strong>Definition:</strong> If a process reads a value and then writes, the write is guaranteed to take place on a copy that is at least as recent as the one where the read took place.
+                </div>
+                
+                <div class="analogy">
+                    <strong>Simple Analogy:</strong> Like editing a document - if you read version 5 of a document and then make changes, your changes are applied to version 5 or later, never to an older version.
+                </div>
+            </div>
+        </section>
+
+        <section id="model-relationships">
+            <h2>Model Relationships and Implications</h2>
+
+            <h3>Implication Chain</h3>
+            <p>When we say model A "implies" model B, it means every history that satisfies A also satisfies B. A is "stronger" than B.</p>
+
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    graph TD
+                        SS[Strict Serializable<br/>🔒 Strongest] 
+                        
+                        SS --> S[Serializable<br/>📋 ACID Transactions]
+                        SS --> L[Linearizable<br/>⏰ Real-time Atomic]
+                        
+                        S --> RR[Repeatable Read<br/>📖 No Non-repeatable Reads]
+                        S --> SI[Snapshot Isolation<br/>📸 MVCC Databases]
+                        
+                        RR --> CS[Cursor Stability<br/>🔍 Stable Read Cursors]
+                        SI --> MAV[Monotonic Atomic View<br/>📊 Atomic Snapshots]
+                        
+                        CS --> RC[Read Committed<br/>✅ No Dirty Reads]
+                        MAV --> RC
+                        
+                        RC --> RU[Read Uncommitted<br/>⚠️ Allows Dirty Reads]
+                        
+                        L --> SEQ[Sequential Consistency<br/>🔄 Total Order]
+                        SEQ --> CAUSAL[Causal Consistency<br/>🔗 Happens-Before]
+                        
+                        CAUSAL --> PRAM[PRAM Consistency<br/>🚰 Per-Process Order]
+                        CAUSAL --> WFR[Writes Follow Reads<br/>📝 Read-Write Dependencies]
+                        
+                        PRAM --> MR[Monotonic Reads<br/>📈 Forward Progress Only]
+                        PRAM --> MW[Monotonic Writes<br/>📤 Write Order Preserved]
+                        PRAM --> RYW[Read Your Writes<br/>👁️ Session Consistency]
+                        
+                        WFR --> RYW
+                        MR --> EC[Eventual Consistency<br/>🕐 Convergence Guarantee]
+                        MW --> EC
+                        RYW --> EC
+                        
+                        classDef strongest fill:#dc2626,stroke:#991b1b,stroke-width:3px,color:#fff
+                        classDef strong fill:#ea580c,stroke:#c2410c,stroke-width:2px,color:#fff
+                        classDef medium fill:#ca8a04,stroke:#a16207,stroke-width:2px,color:#fff
+                        classDef weak fill:#2563eb,stroke:#1d4ed8,stroke-width:2px,color:#fff
+                        classDef weakest fill:#059669,stroke:#047857,stroke-width:2px,color:#fff
+                        
+                        class SS strongest
+                        class S,L strong
+                        class RR,SI,SEQ,CAUSAL medium
+                        class CS,MAV,RC,WFR,PRAM weak
+                        class MR,MW,RYW,RU,EC weakest
+                </div>
+            </div>
+
+            <h3>Key Relationships</h3>
+            <ol>
+                <li><strong>Strict Serializable</strong> is the strongest model, implying both:
+                    <ul>
+                        <li>Serializable (for transactions)</li>
+                        <li>Linearizable (for real-time ordering)</li>
+                    </ul>
+                </li>
+                <li><strong>Sequential Consistency</strong> is implied by linearizability but doesn't require real-time ordering</li>
+                <li><strong>Causal Consistency</strong> preserves causality but allows concurrent operations to be reordered</li>
+                <li><strong>Session Guarantees</strong> (Monotonic Reads/Writes, Read Your Writes) provide per-process consistency</li>
+            </ol>
+        </section>
+
+        <section id="availability-trade-offs">
+            <h2>Availability Trade-offs</h2>
+
+            <h3>CAP Theorem Context</h3>
+            <p>The stronger the consistency model, the less available the system can be during network partitions.</p>
+
+            <div class="properties">
+                <strong>Availability Classifications:</strong>
+                <ul>
+                    <li><strong>Not Available:</strong> Strict Serializable, Linearizable, Sequential</li>
+                    <li><strong>Sticky Available:</strong> Read Your Writes, Monotonic Reads/Writes</li>
+                    <li><strong>Totally Available:</strong> Eventual Consistency, some weak models</li>
+                </ul>
+            </div>
+
+            <div class="analogy">
+                <strong>Simple Analogy:</strong> Think of consistency vs. availability like accuracy vs. speed in journalism:
+                <ul>
+                    <li><strong>High Consistency:</strong> Like a newspaper that fact-checks everything (slow but accurate)</li>
+                    <li><strong>High Availability:</strong> Like social media news (fast but potentially inconsistent)</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="real-world-applications">
+            <h2>Real-World Applications</h2>
+
+            <h3>When to Use Each Model</h3>
+
+            <div class="example">
+                <strong>Strict Serializable:</strong>
+                <ul>
+                    <li>Financial systems (bank transfers)</li>
+                    <li>Inventory management</li>
+                    <li>Any system where correctness is critical</li>
+                </ul>
+            </div>
+
+            <div class="example">
+                <strong>Linearizable:</strong>
+                <ul>
+                    <li>Configuration systems</li>
+                    <li>Leader election</li>
+                    <li>Coordination services (like Zookeeper)</li>
+                </ul>
+            </div>
+
+            <div class="example">
+                <strong>Sequential Consistency:</strong>
+                <ul>
+                    <li>Distributed caches</li>
+                    <li>Replicated state machines</li>
+                    <li>Systems where global ordering matters but real-time doesn't</li>
+                </ul>
+            </div>
+
+            <div class="example">
+                <strong>Causal Consistency:</strong>
+                <ul>
+                    <li>Social media feeds</li>
+                    <li>Collaborative editing</li>
+                    <li>Chat systems</li>
+                </ul>
+            </div>
+
+            <div class="example">
+                <strong>Eventual Consistency:</strong>
+                <ul>
+                    <li>DNS systems</li>
+                    <li>Content delivery networks</li>
+                    <li>Shopping cart systems</li>
+                </ul>
+            </div>
+
+        </section>
+
+        <section>
+            <h2>Summary</h2>
+            <p>Consistency models form a hierarchy from strongest (Strict Serializable) to weakest (Eventual Consistency). The choice of consistency model involves trade-offs:</p>
+            
+            <div class="properties">
+                <strong>Key Trade-offs:</strong>
+                <ul>
+                    <li><strong>Stronger models</strong> provide better guarantees but limit availability and performance</li>
+                    <li><strong>Weaker models</strong> offer better availability and performance but fewer guarantees</li>
+                </ul>
+            </div>
+
+            <p>Understanding these models helps you choose the right consistency level for your application's needs, balancing correctness requirements with performance and availability constraints.</p>
+            
+            <div class="analogy">
+                <strong>Key Insight:</strong> Different parts of your system might need different consistency models - you don't need to apply the same model everywhere. A shopping cart might use eventual consistency, while payment processing requires strict serializability.
+            </div>
+        </section>
+
+        <div class="nav-bottom">
+            <a href="index.html" class="nav-btn">← Back to Overview</a>
+            <a href="interactive.html" class="nav-btn">Try Interactive Demo →</a>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#e8f4fd',
+                primaryTextColor: '#1e3a8a',
+                primaryBorderColor: '#1e40af',
+                lineColor: '#64748b',
+                secondaryColor: '#f8fafc',
+                tertiaryColor: '#f1f5f9'
+            }
+        });
+    </script>
+</body>
+</html>

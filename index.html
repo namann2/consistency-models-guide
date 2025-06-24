@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consistency Model DeepDive</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #374151;
+            background: #ffffff;
+        }
+        
+        .container {
+            max-width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        nav {
+            background: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            padding: 0 2rem;
+        }
+        
+        .nav-link {
+            text-decoration: none;
+            color: #4a5568;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        main {
+            flex: 1;
+            padding: 3rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .section {
+            margin-bottom: 4rem;
+        }
+        
+        .section h2 {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #2d3748;
+        }
+        
+        .hierarchy-container {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 3rem;
+        }
+        
+        .hierarchy-visual {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .hierarchy-level {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .model-card {
+            background: white;
+            border: 2px solid;
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            min-width: 200px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .model-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .model-card.strongest {
+            border-color: #e53e3e;
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+            color: #742a2a;
+        }
+        
+        .model-card.strong {
+            border-color: #d53f8c;
+            background: linear-gradient(135deg, #fbb6ce 0%, #f687b3 100%);
+            color: #702459;
+        }
+        
+        .model-card.medium {
+            border-color: #dd6b20;
+            background: linear-gradient(135deg, #fbd38d 0%, #f6ad55 100%);
+            color: #7b341e;
+        }
+        
+        .model-card.weak {
+            border-color: #5a67d8;
+            background: linear-gradient(135deg, #c3dafe 0%, #a3bffa 100%);
+            color: #3c366b;
+        }
+        
+        .model-card.weakest {
+            border-color: #38b2ac;
+            background: linear-gradient(135deg, #b2f5ea 0%, #81e6d9 100%);
+            color: #234e52;
+        }
+        
+        .arrow {
+            font-size: 2rem;
+            color: #a0aec0;
+            font-weight: bold;
+        }
+        
+        .strength-indicator {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #4299e1;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .mermaid-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        
+        .card h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+        
+        .card p {
+            color: #4a5568;
+            line-height: 1.7;
+        }
+        
+        .cta-section {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 2rem;
+            border-radius: 12px;
+            margin: 3rem 0;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+        
+        .btn-primary:hover {
+            background: #f7fafc;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            position: relative;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #9ca3af;
+            transition: color 0.3s;
+        }
+        
+        .close:hover {
+            color: #374151;
+        }
+        
+        .modal h3 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .modal p {
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        
+        footer {
+            background: #f9fafb;
+            color: #6b7280;
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .nav-container { gap: 1rem; }
+            .hierarchy-level { gap: 1rem; }
+            .model-card { min-width: 150px; padding: 1rem; }
+            main { padding: 2rem 1rem; }
+            .modal-content { margin: 20% auto; width: 95%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Consistency Model DeepDive</h1>
+            <p class="subtitle">Master Distributed System Consistency Models</p>
+        </header>
+        
+        <nav>
+                <div class="nav-container">
+                    <a href="#overview" class="nav-link">Overview</a>
+                    <a href="guide.html" class="nav-link">Complete Guide</a>
+                    <a href="interactive.html" class="nav-link">Interactive Demo</a>
+                    <a href="comparison.html" class="nav-link">Comparisons</a>
+                </div>
+        </nav>
+        
+        <main>
+            <section id="overview" class="section">
+                <h2>Consistency Model Hierarchy</h2>
+                <div class="hierarchy-container">
+                    <div class="hierarchy-visual">
+                        <div class="hierarchy-level">
+                            <div class="model-card strongest" onclick="showModelInfo('strict')">
+                                <div class="strength-indicator">1</div>
+                                <div>Strict Serializable</div>
+                                <small>Strongest Guarantee</small>
+                            </div>
+                        </div>
+                        
+                        <div class="arrow">↓</div>
+                        
+                        <div class="hierarchy-level">
+                            <div class="model-card strong" onclick="showModelInfo('linearizable')">
+                                <div class="strength-indicator">2</div>
+                                <div>Linearizable</div>
+                                <small>Real-time Atomic</small>
+                            </div>
+                            <div class="model-card strong" onclick="showModelInfo('serializable')">
+                                <div class="strength-indicator">2</div>
+                                <div>Serializable</div>
+                                <small>Transaction Order</small>
+                            </div>
+                        </div>
+                        
+                        <div class="arrow">↓</div>
+                        
+                        <div class="hierarchy-level">
+                            <div class="model-card medium" onclick="showModelInfo('sequential')">
+                                <div class="strength-indicator">3</div>
+                                <div>Sequential</div>
+                                <small>Global Order</small>
+                            </div>
+                            <div class="model-card medium" onclick="showModelInfo('snapshot')">
+                                <div class="strength-indicator">3</div>
+                                <div>Snapshot Isolation</div>
+                                <small>Consistent Snapshots</small>
+                            </div>
+                            <div class="model-card medium" onclick="showModelInfo('repeatable')">
+                                <div class="strength-indicator">3</div>
+                                <div>Repeatable Read</div>
+                                <small>Same Read Results</small>
+                            </div>
+                        </div>
+                        
+                        <div class="arrow">↓</div>
+                        
+                        <div class="hierarchy-level">
+                            <div class="model-card weak" onclick="showModelInfo('causal')">
+                                <div class="strength-indicator">4</div>
+                                <div>Causal</div>
+                                <small>Cause-Effect Order</small>
+                            </div>
+                            <div class="model-card weak" onclick="showModelInfo('pram')">
+                                <div class="strength-indicator">4</div>
+                                <div>PRAM</div>
+                                <small>Per-Process Order</small>
+                            </div>
+                            <div class="model-card weak" onclick="showModelInfo('committed')">
+                                <div class="strength-indicator">4</div>
+                                <div>Read Committed</div>
+                                <small>Only Committed Data</small>
+                            </div>
+                        </div>
+                        
+                        <div class="arrow">↓</div>
+                        
+                        <div class="hierarchy-level">
+                            <div class="model-card weakest" onclick="showModelInfo('session')">
+                                <div class="strength-indicator">5</div>
+                                <div>Session Guarantees</div>
+                                <small>Per-Session Consistency</small>
+                            </div>
+                        </div>
+                        
+                        <div class="arrow">↓</div>
+                        
+                        <div class="hierarchy-level">
+                            <div class="model-card weakest" onclick="showModelInfo('eventual')">
+                                <div class="strength-indicator">6</div>
+                                <div>Eventual</div>
+                                <small>Eventually Consistent</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mermaid-container">
+                    <h3>Detailed Relationship Diagram</h3>
+                    <div class="mermaid">
+                        graph TD
+                            SS[Strict Serializable<br/>🔒 Banking Systems] --> S[Serializable<br/>📋 ACID Databases]
+                            SS --> L[Linearizable<br/>⏰ Configuration Systems]
+                            
+                            S --> RR[Repeatable Read<br/>📖 SQL Isolation]
+                            S --> SI[Snapshot Isolation<br/>📸 MVCC Databases]
+                            
+                            L --> SEQ[Sequential Consistency<br/>🔄 Distributed Caches]
+                            
+                            RR --> RC[Read Committed<br/>✅ Web Applications]
+                            SI --> RC
+                            SEQ --> CAUSAL[Causal Consistency<br/>🔗 Social Media]
+                            
+                            CAUSAL --> PRAM[PRAM Consistency<br/>🚰 Per-Process Order]
+                            CAUSAL --> WFR[Writes Follow Reads<br/>📝 Document Editing]
+                            
+                            PRAM --> MR[Monotonic Reads<br/>📈 Never Go Backward]
+                            PRAM --> MW[Monotonic Writes<br/>📤 Ordered Updates]
+                            PRAM --> RYW[Read Your Writes<br/>👁️ See Own Changes]
+                            
+                            RC --> RU[Read Uncommitted<br/>⚠️ Analytics Systems]
+                            
+                            MR --> EC[Eventual Consistency<br/>🕐 DNS, CDN]
+                            MW --> EC
+                            RYW --> EC
+                            WFR --> RYW
+                            
+                            classDef strongest fill:#fed7d7,stroke:#e53e3e,stroke-width:3px,color:#742a2a
+                            classDef strong fill:#fbb6ce,stroke:#d53f8c,stroke-width:2px,color:#702459
+                            classDef medium fill:#fbd38d,stroke:#dd6b20,stroke-width:2px,color:#7b341e
+                            classDef weak fill:#c3dafe,stroke:#5a67d8,stroke-width:2px,color:#3c366b
+                            classDef weakest fill:#b2f5ea,stroke:#38b2ac,stroke-width:2px,color:#234e52
+                            
+                            class SS strongest
+                            class S,L strong
+                            class RR,SI,SEQ medium
+                            class CAUSAL,PRAM,RC,WFR weak
+                            class MR,MW,RYW,RU,EC weakest
+                    </div>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2>Key Concepts</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Consistency vs Availability</h3>
+                        <p>Stronger consistency models provide better guarantees but limit system availability during network partitions. This fundamental trade-off shapes distributed system design.</p>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Performance Impact</h3>
+                        <p>Higher consistency levels typically require more coordination between nodes, resulting in increased latency and reduced throughput.</p>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Model Relationships</h3>
+                        <p>Consistency models form a hierarchy where stronger models imply weaker ones. Understanding these relationships helps in system design decisions.</p>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Real-World Applications</h3>
+                        <p>Different parts of your system may need different consistency levels. Financial transactions need strong consistency, while user preferences can use weaker models.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <div class="cta-section">
+                <h2>Start Your Deep Dive</h2>
+                <p>Explore comprehensive explanations, interactive demos, and practical examples</p>
+                <div class="cta-buttons">
+                    <a href="guide.html" class="btn btn-primary">Complete Guide</a>
+                    <a href="interactive.html" class="btn">Interactive Demo</a>
+                    <a href="comparison.html" class="btn">Compare Models</a>
+                </div>
+            </div>
+        </main>
+        
+    </div>
+    
+    <!-- Modal -->
+    <div id="modelModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="modalTitle"></h3>
+            <p id="modalDescription"></p>
+        </div>
+    </div>
+    
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#667eea',
+                primaryTextColor: '#2d3748',
+                primaryBorderColor: '#4a5568',
+                lineColor: '#a0aec0',
+                secondaryColor: '#f7fafc',
+                tertiaryColor: '#edf2f7'
+            }
+        });
+        
+        // Modal functionality
+        const modal = document.getElementById('modelModal');
+        const closeBtn = document.getElementsByClassName('close')[0];
+        
+        function showModelInfo(model) {
+            const modelData = {
+                strict: {
+                    title: 'Strict Serializable',
+                    description: 'The strongest consistency model combining serializability with real-time ordering. Transactions appear to execute in some serial order while respecting real-time constraints. Used in banking and financial systems where correctness is absolutely critical.'
+                },
+                linearizable: {
+                    title: 'Linearizable',
+                    description: 'Operations appear atomic and respect real-time ordering. Every operation takes effect at some point between its start and completion. Perfect for configuration systems and coordination services like Zookeeper.'
+                },
+                serializable: {
+                    title: 'Serializable',
+                    description: 'Transactions appear to execute in some serial order, but real-time ordering is not required. Standard isolation level for ACID databases. Prevents all read and write anomalies.'
+                },
+                sequential: {
+                    title: 'Sequential Consistency',
+                    description: 'All processes see operations in the same order, but not necessarily real-time order. Used in distributed caches and replicated state machines where global ordering matters.'
+                },
+                snapshot: {
+                    title: 'Snapshot Isolation',
+                    description: 'Each transaction sees a consistent snapshot from when it started. Common in MVCC databases like PostgreSQL. Prevents most anomalies but allows write skew.'
+                },
+                repeatable: {
+                    title: 'Repeatable Read',
+                    description: 'Reading the same data multiple times returns the same result within a transaction. Prevents dirty reads and non-repeatable reads but allows phantom reads.'
+                },
+                causal: {
+                    title: 'Causal Consistency',
+                    description: 'Preserves cause-and-effect relationships. Operations that are causally related must be seen in the same order by all processes. Perfect for social media and collaborative applications.'
+                },
+                pram: {
+                    title: 'PRAM Consistency',
+                    description: 'Each process sees its own operations in order, but operations from different processes can be interleaved arbitrarily. Useful for distributed systems with per-process ordering requirements.'
+                },
+                committed: {
+                    title: 'Read Committed',
+                    description: 'Only see data that has been committed by other transactions. Most common isolation level in practice. Prevents dirty reads but allows non-repeatable reads and phantom reads.'
+                },
+                session: {
+                    title: 'Session Guarantees',
+                    description: 'Provide consistency within a single session including Monotonic Reads, Monotonic Writes, Read Your Writes, and Writes Follow Reads. Useful for user-centric applications.'
+                },
+                eventual: {
+                    title: 'Eventual Consistency',
+                    description: 'All replicas will eventually converge to the same state. Provides high availability and partition tolerance. Used in DNS, CDNs, and highly available systems like Amazon DynamoDB.'
+                }
+            };
+            
+            const data = modelData[model];
+            if (data) {
+                document.getElementById('modalTitle').textContent = data.title;
+                document.getElementById('modalDescription').textContent = data.description;
+                modal.style.display = 'block';
+            }
+        }
+        
+        // Close modal when clicking the X
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+        
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

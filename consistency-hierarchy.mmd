@@ -1,0 +1,42 @@
+graph TD
+    SS[Strict Serializable<br/>🔒 Strongest] --> S[Serializable<br/>📋 Transaction Order]
+    SS --> L[Linearizable<br/>⏰ Real-time Order]
+    
+    S --> RR[Repeatable Read<br/>📖 Same Read Results]
+    S --> SI[Snapshot Isolation<br/>📸 Consistent Snapshots]
+    
+    RR --> CS[Cursor Stability<br/>🔍 Stable Cursors]
+    SI --> MAV[Monotonic Atomic View<br/>📊 Atomic Views]
+    
+    CS --> RC[Read Committed<br/>✅ Only Committed Data]
+    MAV --> RC
+    
+    RC --> RU[Read Uncommitted<br/>⚠️ Dirty Reads Allowed]
+    
+    L --> SEQ[Sequential Consistency<br/>🔄 Global Order]
+    SEQ --> CAUSAL[Causal Consistency<br/>🔗 Cause-Effect Order]
+    
+    CAUSAL --> WFR[Writes Follow Reads<br/>📝 Read-then-Write]
+    CAUSAL --> PRAM[PRAM Consistency<br/>🚰 Per-Process Order]
+    
+    PRAM --> MR[Monotonic Reads<br/>📈 Never Go Backward]
+    PRAM --> MW[Monotonic Writes<br/>📤 Write Order Preserved]
+    PRAM --> RYW[Read Your Writes<br/>👁️ See Own Changes]
+    
+    MR --> EC[Eventual Consistency<br/>🕐 Eventually Consistent]
+    MW --> EC
+    RYW --> EC
+    WFR --> RYW
+    
+    %% Styling
+    classDef strongest fill:#ff6b6b,stroke:#d63031,stroke-width:3px,color:#fff
+    classDef strong fill:#fd79a8,stroke:#e84393,stroke-width:2px,color:#fff
+    classDef medium fill:#fdcb6e,stroke:#e17055,stroke-width:2px,color:#000
+    classDef weak fill:#6c5ce7,stroke:#5f3dc4,stroke-width:2px,color:#fff
+    classDef weakest fill:#74b9ff,stroke:#0984e3,stroke-width:2px,color:#fff
+    
+    class SS strongest
+    class S,L strong
+    class RR,SI,SEQ,CAUSAL medium
+    class CS,MAV,RC,WFR,PRAM weak
+    class MR,MW,RYW,RU,EC weakest
